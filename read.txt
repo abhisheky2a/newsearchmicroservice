@@ -1,0 +1,37 @@
+This node js express server microservice takes the below input,
+
+{
+	"keyword" : "apple",
+	"interval" : "36",
+	"timespan" : "hours"
+}
+
+and searches the news arcticle in the mentioned duration of XX hours, mins, seconds etc. and returns the relevant contents,
+
+{
+    "success": true,
+    "articles": [
+        {
+            "author": "Kris Holt",
+            "title": "Apple TV's MLS Season Pass subscriptions have doubled since Messi's arrival in the US",
+            "url": "https://www.engadget.com/apple-tvs-mls-season-pass-subscriptions-have-doubled-since-messis-arrival-in-the-us-150221673.html",
+            "publishedAt": "2023-08-11T15:02:21Z"
+        },
+        {
+            "author": "Jessica Kanzler",
+            "title": "This 2018 iPad Bundle Is $200 Right Now",
+            "url": "https://lifehacker.com/this-2018-ipad-bundle-is-200-right-now-1850722369",
+            "publishedAt": "2023-08-11T16:00:00Z"
+        },
+        {
+            "author": null,
+            "title": "GQG Partners adds Nvidia, Amazon, Apple in Q2 - Reuters",
+            "url": "https://consent.google.com/ml?continue=https://news.google.com/rss/articles/CBMiV2h0dHBzOi8vd3d3LnJldXRlcnMuY29tL3RlY2hub2xvZ3kvZ3FnLXBhcnRuZXJzLWFkZHMtbnZpZGlhLWFtYXpvbi1hcHBsZS1xMi0yMDIzLTA4LTExL9IBAA?oc%3D5&gl=FR&hl=en-US&cm=2&pc=n&src=1",
+            "publishedAt": "2023-08-11T21:56:00Z"
+        }
+    ]
+}
+
+The defaul url is http://<hostname>:8080/newssearch
+It is not exposed in Google Cloud in Cloud Run as a containarized service and is accessible at 
+The code is in Gitlab and it is integrated with GCP with Cloud Run (equivalent to Jenkins)

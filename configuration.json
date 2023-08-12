@@ -1,0 +1,5 @@
+{
+    "host": "newsapi.org",
+    "path": "/v2/everything",
+    "apikey": "ccaf5d41cc5140c984818c344edcc14d"
+}
