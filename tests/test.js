@@ -1,6 +1,6 @@
 
 const request = require("supertest");
-const app = require("./index");
+const app = require("../index");
 
 // Test case to see if newssearch is working for 12 days
 

@@ -1,13 +1,14 @@
-//@Author Abhishek Chakraborty
-//@Date 12 Aug 2023
+// @Author Abhishek Chakraborty
+// @Date 12 Aug 2023
+// @Function This React App is the front end component for the news search Microservice
 
 // import the required libraries and files
 const express = require('express');
 const moment = require('moment');
 const https = require('https');
 const cors = require('cors');
-const defaultData = require('./default.json');
-const configuration = require('./configuration.json')
+const defaultData = require('./cache/default.json');
+const configuration = require('./configs/configuration.json')
 
 // use express framework for nodejs Server 
 const app = express();
@@ -23,15 +24,27 @@ app.get('/healthCheck', (req, res) => {
 
 // expose newssearch API
 app.post('/newssearch', async (req, res) => {
-  const keyword = req.body.keyword
-  const interval = req.body.interval
-  const timespan = req.body.timespan
-  
+  let keyword = req.body.keyword
+  let interval = req.body.interval
+  let timespan = req.body.timespan
+
+  // check for any extra white spaces
+  if(keyword && keyword != null)
+    keyword = keyword.trim();
+
   // keyword is required, throw 500 response if the search keyword is not present
   if (keyword == null) {
     return res.status(500).json({
       success: false,
       message: "keyword missing...",
+    });
+  }
+
+  // keyword should not be more than one word
+  if (keyword.split(' ').length > 1) {
+    return res.status(500).json({
+      success: false,
+      message: "keyword should not be more than one word...",
     });
   }
 
@@ -66,6 +79,38 @@ app.post('/newssearch', async (req, res) => {
     articles: []
   };
 
+  function getAskedTime(timespan, interval) {
+    let askedTime = "";
+    // get the asked time by subsstracting the number of days, months, weeks etc. from the current time
+    if (timespan === 'days') {
+      askedTime = moment().utc().subtract(interval, 'days').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else if (timespan === 'weeks') {
+      askedTime = moment().utc().subtract(interval, 'weeks').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else if (timespan === 'months') {
+      askedTime = moment().utc().subtract(interval, 'months').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else if (timespan === 'years') {
+      askedTime = moment().utc().subtract(interval, 'years').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else if (timespan === 'hours') {
+      askedTime = moment().utc().subtract(interval, 'hours').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else if (timespan === 'minutes') {
+      askedTime = moment().utc().subtract(interval, 'minutes').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else if (timespan === 'seconds') {
+      askedTime = moment().utc().subtract(interval, 'seconds').format('YYYY-MM-DDT00:00:00Z');
+    }
+    else {
+      // default is 12 hours
+      askedTime = moment().utc().subtract(12, 'hours').format('YYYY-MM-DDT00:00:00Z');
+    }
+
+    return askedTime;
+  }
+
   https.get(options, function (response) {
     console.log("STATUS: " + response.statusCode);
     console.log("HEADERS: " + JSON.stringify(response.headers));
@@ -82,35 +127,7 @@ app.post('/newssearch', async (req, res) => {
       // if the response is 200 and the data is valid and http status is ok , let's proceed
       if (response.statusCode === 200 && data !== undefined && data.status == "ok") {
         let articles = [];
-        let askedTime;
-        // get the asked time by subsstracting the number of days, months, weeks etc. from the current time
-        if (timespan === 'days') {
-          askedTime = moment().utc().subtract(interval, 'days').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else if (timespan === 'weeks') {
-          askedTime = moment().utc().subtract(interval, 'weeks').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else if (timespan === 'months') {
-          askedTime = moment().utc().subtract(interval, 'months').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else if (timespan === 'years') {
-          askedTime = moment().utc().subtract(interval, 'years').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else if (timespan === 'hours') {
-          askedTime = moment().utc().subtract(interval, 'hours').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else if (timespan === 'minutes') {
-          askedTime = moment().utc().subtract(interval, 'minutes').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else if (timespan === 'seconds') {
-          askedTime = moment().utc().subtract(interval, 'seconds').format('YYYY-MM-DDT00:00:00Z');
-        }
-        else {
-          // default is 12 hours
-          askedTime = moment().utc().subtract(12, 'hours').format('YYYY-MM-DDT00:00:00Z');
-        }
-
-
+        let askedTime = getAskedTime(timespan, interval);
         console.log('askedTime ', askedTime)
         let askedTimestamp = new Date(askedTime).getTime();
         console.log('askedTimestamp ', askedTimestamp)
@@ -118,8 +135,8 @@ app.post('/newssearch', async (req, res) => {
         allArticles = JSON.parse(allArticles)
 
         // Iterate thorugh the new articles and take on the ones published in the mentioned duration
-        for (var i = 0; i < allArticles.length; i++) {
-          var articleTimestamp = new Date(allArticles[i].publishedAt).getTime();
+        for (let i = 0; i < allArticles.length; i++) {
+          let articleTimestamp = new Date(allArticles[i].publishedAt).getTime();
           // take on the artickes which is within the mentioned duration
           if (articleTimestamp > askedTimestamp) {
             console.log('articleTimestamp ', articleTimestamp)
@@ -148,41 +165,15 @@ app.post('/newssearch', async (req, res) => {
     // In case of error read from defaul json response.
     // In real scenerios this can be from Hazel Cache or Redis in Memory DBs
     let articles = [];
-    let askedTime;
-    if (timespan === 'days') {
-      askedTime = moment().utc().subtract(interval, 'days').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else if (timespan === 'weeks') {
-      askedTime = moment().utc().subtract(interval, 'weeks').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else if (timespan === 'months') {
-      askedTime = moment().utc().subtract(interval, 'months').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else if (timespan === 'years') {
-      askedTime = moment().utc().subtract(interval, 'years').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else if (timespan === 'hours') {
-      askedTime = moment().utc().subtract(interval, 'hours').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else if (timespan === 'minutes') {
-      askedTime = moment().utc().subtract(interval, 'minutes').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else if (timespan === 'seconds') {
-      askedTime = moment().utc().subtract(interval, 'seconds').format('YYYY-MM-DDT00:00:00Z');
-    }
-    else {
-      // default is 12 hours
-      askedTime = moment().utc().subtract(12, 'hours').format('YYYY-MM-DDT00:00:00Z');
-    }
-
+    let askedTime = getAskedTime(timespan, interval);
     console.log('askedTime ', askedTime)
     let askedTimestamp = new Date(askedTime).getTime();
     console.log('askedTimestamp ', askedTimestamp)
     let allArticles = JSON.stringify(defaultData.articles)
     allArticles = JSON.parse(allArticles)
 
-    for (var i = 0; i < allArticles.length; i++) {
-      var articleTimestamp = new Date(allArticles[i].publishedAt).getTime();
+    for (let i = 0; i < allArticles.length; i++) {
+      let articleTimestamp = new Date(allArticles[i].publishedAt).getTime();
       if (articleTimestamp > askedTimestamp) {
         console.log('articleTimestamp ', articleTimestamp)
         let article = {}
@@ -206,5 +197,5 @@ app.post('/newssearch', async (req, res) => {
 module.exports = app
 
 // expose newssearch API
-var port = process.env.PORT || 8080;
+let port = process.env.PORT || 8080;
 app.listen(port, () => console.log('News Search Service is listening on port 8080!'));

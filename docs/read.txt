@@ -33,5 +33,5 @@ and searches the news arcticle in the mentioned duration of XX hours, mins, seco
 }
 
 The defaul url is http://<hostname>:8080/newssearch
-It is not exposed in Google Cloud in Cloud Run as a containarized service and is accessible at 
+It is not exposed in Google Cloud in Cloud Run as a containarized service and is accessible at https://newsearchmicroservice-o2sdrjst3q-uc.a.run.app/newssearch
 The code is in Gitlab and it is integrated with GCP with Cloud Run (equivalent to Jenkins)
