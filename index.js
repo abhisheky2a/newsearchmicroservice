@@ -1,6 +1,6 @@
 // @Author Abhishek Chakraborty
 // @Date 12 Aug 2023
-// @Function This React App is the front end component for the news search Microservice
+// @Function This is the backend end NodeJS Express Microservice to search new articles
 
 // import the required libraries and files
 const express = require('express');
